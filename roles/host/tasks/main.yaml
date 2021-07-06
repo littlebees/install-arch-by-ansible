@@ -1,0 +1,62 @@
+- name: install grub
+  command: "/usr/bin/grub-install --target=x86_64-efi --efi-directory=/boot/efi {{ hdd_dev }}"
+
+- name: set grub timeout zero
+  lineinfile:
+    path: /etc/default/grub
+    regexp: '^GRUB_TIMEOUT=.+'
+    line: 'GRUB_TIMEOUT=0'
+    backrefs: yes
+
+- name: generate grub menu
+  command: /usr/bin/grub-mkconfig -o /boot/grub/grub.cfg
+
+- name: append timezones
+  lineinfile:
+    path: /etc/locale.gen
+    line: "{{ item }}"
+  with_items:
+    - en_US.UTF-8 UTF-8
+    - zh_TW.UTF-8 UTF-8
+
+- name: create lcoale.conf
+  lineinfile:
+    path: /etc/locale.conf
+    line: LANG=en_US.UTF-8
+    create: yes
+
+- name: create /etc/localtime
+  file:
+    src: /usr/share/zoneinfo/Asia/Taipei
+    dest: /etc/localtime
+    state: link
+
+- name: setup timezone
+  command: "{{ item }}"
+  with_items:
+   - locale-gen
+   - hwclock --systohc
+
+- name: create hostname
+  lineinfile:
+    path: /etc/hostname
+    line: "{{ myhost }}"
+    create: yes
+
+- name: add default DNS
+  lineinfile:
+    path: /etc/resolv.conf
+    line: nameserver 8.8.8.8
+    create: yes
+
+- name: update mirror
+  shell: |
+    pacman -U --noconfirm http://allanmcrae.com/packages/pacman-6.0.0alpha1-1-x86_64.pkg.tar.zst
+    /usr/bin/pacman -Sy --noconfirm reflector
+    reflector --verbose --latest 100 --sort rate --country 'Taiwan' --save /etc/pacman.d/mirrorlist
+    /usr/bin/pacman -Ru --noconfirm reflector
+
+- name: setup confs
+  import_role:
+    name: host
+    tasks_from: setup_confs

@@ -1,0 +1,5 @@
+1. use import_role to organize tasks in each role
+2. integrate with keepass
+3. use systemd-networkd & systemd-homed??
+4. area-screenshot-clip's content only in clipboard
+5. systemd default admin should be newuser

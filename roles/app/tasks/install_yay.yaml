@@ -1,0 +1,13 @@
+- name: clone yay
+  become: yes
+  become_user: aur_installer
+  git:
+    repo: https://aur.archlinux.org/yay.git
+    dest: ~aur_installer/yay
+
+- name: install yay
+  become: yes
+  become_user: aur_installer
+  command: makepkg -si --noconfirm
+  args:
+    chdir: ~aur_installer/yay

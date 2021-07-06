@@ -1,0 +1,70 @@
+- name: parted dev
+  parted:
+    device: "{{ hdd_dev }}"
+    number: "{{ item.num }}"
+    state: present
+    part_start: "{{ item.a }}"
+    part_end: "{{ item.b }}"
+  with_items:
+    - { num: 1, a: 0%, b: 256MiB }
+    - { num: 2, a: 256MiB, b: 100% }
+
+- name: format sections
+  filesystem:
+    fstype: "{{ item.fs }}"
+    dev: "{{ item.dev }}"
+  with_items:
+    - { fs: vfat, dev: "{{ efi_dev }}" }
+    - { fs: ext4, dev: "{{ root_dev }}" }
+
+- name: mount root
+  mount:
+    src: "{{ root_dev }}"
+    path: /mnt
+    fstype: ext4
+    state: mounted
+
+- name: update mirror
+  shell: |
+    pacman -U --noconfirm http://allanmcrae.com/packages/pacman-6.0.0alpha1-1-x86_64.pkg.tar.zst
+    pacman -Sy --noconfirm reflector
+    reflector --verbose --latest 100 --sort rate --country 'Taiwan' --save /etc/pacman.d/mirrorlist
+
+- name: install arch linux
+  command: "pacstrap /mnt base base-devel linux grub efibootmgr zsh python3 git openssh vim python-pip sudo"
+
+- name: create /mnt/boot/efi
+  file:
+    path: /mnt/boot/efi
+    state: directory
+
+- name: mount /boot/efi
+  mount:
+    src: "{{ efi_dev }}"
+    path: /mnt/boot/efi
+    fstype: vfat
+    state: mounted
+
+- name: mount /dev, proc, sys
+  mount:
+    src: "/{{ item }}"
+    path: "/mnt/{{ item }}"
+    opts: rbind
+    fstype: none
+    state: mounted
+  with_items:
+    - dev
+    - proc
+    - sys
+
+- name: hack sshd_config to chroot
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    line: ChrootDirectory /mnt
+
+- name: restart sshd
+  service:
+    name: sshd
+    state: restarted
+- name: reset ssh conn
+  meta: reset_connection

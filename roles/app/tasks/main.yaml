@@ -1,0 +1,35 @@
+- name: install software
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ pacman_apps }}"
+
+# FIXME
+- name: install yay in sudoer ctx
+  include_role:
+    name: common
+    tasks_from: sudoer_ctx
+  vars:
+    target_role: app
+    task_name: install_yay
+
+- name: install aur apps in sudoer ctx
+  include_role:
+    name: common
+    tasks_from: sudoer_ctx
+  vars:
+    target_role: common
+    task_name: install_aur_apps
+    apps: "{{ aur_apps }}"
+
+- name: install zsh
+  include_role:
+    name: app
+    tasks_from: install_zsh
+
+- name: install srv
+  include_role:
+    name: common
+    tasks_from: install_srv
+  vars:
+    srv_list: "{{ host_srvs }}"

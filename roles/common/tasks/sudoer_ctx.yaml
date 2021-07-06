@@ -1,0 +1,30 @@
+- name: create tmp user
+  user:
+    name: aur_installer
+    group: wheel
+
+- name: create tmp user sudoer file
+  lineinfile:
+     path: /etc/sudoers.d/aur_installer-allow-to-sudo-pacman
+     state: present
+     line: "aur_installer ALL=(ALL) NOPASSWD: /usr/bin/pacman"
+     validate: /usr/sbin/visudo -cf %s
+     create: yes
+
+# cant use role_name, should use target_role
+# or, role_name will be "common"
+- name: exec callback in tmp sudoer context
+  include_role:
+    name: "{{ target_role }}"
+    tasks_from: "{{ task_name }}"
+
+- name: remove tmp user
+  user:
+    name: aur_installer
+    state: absent
+    remove: yes
+
+- name: remove useless sudoer file
+  file:
+    path: /etc/sudoers.d/aur_installer-allow-to-sudo-pacman
+    state: absent

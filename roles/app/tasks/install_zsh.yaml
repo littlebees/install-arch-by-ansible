@@ -1,0 +1,59 @@
+# https://medium.com/tech-notes-and-geek-stuff/install-zsh-on-arch-linux-manjaro-and-make-it-your-default-shell-b0098b756a7a
+- name: install zsh
+  package:
+    name: zsh
+    state: present
+
+- name: install oh-my-zsh-git in sudoer ctx
+  include_role:
+    name: common
+    tasks_from: sudoer_ctx
+  vars:
+    target_role: common
+    task_name: install_aur_apps
+    apps: 
+      - oh-my-zsh-git
+
+- name: install plugins from official repo
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - zsh-syntax-highlighting
+    - zsh-autosuggestions
+  
+- name: install powerlevel10k in sudoer ctx
+  include_role:
+    name: common
+    tasks_from: sudoer_ctx
+  vars:
+    target_role: common
+    task_name: install_aur_apps
+    apps: 
+      - zsh-theme-powerlevel10k-git
+
+- name: write .zshrc for users
+  become: yes
+  become_user: '{{ user_id }}'
+  template:
+    src: zshrc.j2
+    dest: '~{{ user_id }}/.zshrc'
+    backup: yes
+    mode: 'u=rw,go=r'
+
+- name: write .p10k.zsh for users
+  become: yes
+  become_user: '{{ user_id }}'
+  copy:
+    src: p10k.zsh
+    dest: '~{{ user_id }}/.p10k.zsh'
+    mode: 'u=rw,go=r'
+
+- name: set default shell for users
+  become: yes
+  user:
+    name: '{{ user_id }}'
+    shell: /bin/zsh
+
+- name: update pkgfile
+  command: pkgfile -u

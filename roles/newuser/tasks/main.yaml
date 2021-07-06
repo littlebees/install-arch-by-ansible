@@ -1,0 +1,65 @@
+- name: add user
+  user:
+    name: "{{ user_id }}"
+    password: "{{ user_pw | password_hash('sha512') }}"
+    group: wheel
+    generate_ssh_key: yes
+    create_home: yes
+
+- name: set git default editor to vim
+  become: yes
+  become_user: '{{ user_id }}'
+  git_config:
+    name: core.editor
+    scope: global
+    value: vim
+
+- name: set git email
+  become: yes
+  become_user: '{{ user_id }}'
+  git_config:
+    name: user.email
+    scope: global
+    value: "{{ git_email }}"
+
+- name: set git username
+  become: yes
+  become_user: '{{ user_id }}'
+  git_config:
+    name: user.name
+    scope: global
+    value: "{{ git_username }}"
+
+- name: ensure dir
+  file:
+    path: "{{ item.dst | dirname }}"
+    state: directory
+    owner: "{{ user_id }}"
+  with_items: "{{ user_rcs }}"
+
+- name: copy confs into user home
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dst }}"
+    owner: "{{ user_id }}"
+    mode: "0644"
+  with_items: "{{ user_rcs }}"
+
+- name: cat ssh public key
+  shell: "cat ~{{ user_id }}/.ssh/id_rsa.pub"
+  register: ssh_key
+
+- name: set ssh key on github
+  uri:
+    url: https://api.github.com/user/keys
+    method: POST
+    body_format: json
+    status_code: 201
+    headers:
+      Authorization: "token {{ gh_add_ssh_key }}"
+      Accept: application/vnd.github.v3+json
+    body:
+      key: "{{ ssh_key.stdout }}"
+      title: "{{ user_id }}'s PC"
+  when: gh_add_ssh_key is defined
+      

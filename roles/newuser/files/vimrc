@@ -1,0 +1,25 @@
+syntax on
+filetype on
+set noexpandtab
+set softtabstop=4
+set shiftwidth=4
+"colorscheme desert
+"colorscheme peachpuff
+colorscheme delek
+au BufRead,BufNewFile *.shtml set filetype=php
+au BufRead,BufNewFile *.inc set filetype=make
+map <F8> :set hls!<BAR>set hls?<CR>
+map <F7> :set nu!<BAR>set nu?<CR>
+map <F5> :!cscope -Rbqk<CR>:cs reset<CR><CR>
+nnoremap <silent> <F6> :TlistToggle<CR>
+set incsearch
+set hls
+
+if &diff
+    syntax off
+endif
+
+highlight DiffAdd    cterm=bold ctermfg=10 ctermbg=17 gui=none guifg=bg guibg=Red
+highlight DiffDelete cterm=bold ctermfg=10 ctermbg=17 gui=none guifg=bg guibg=Red
+highlight DiffChange cterm=bold ctermfg=10 ctermbg=17 gui=none guifg=bg guibg=Red
+highlight DiffText   cterm=bold ctermfg=10 ctermbg=88 gui=none guifg=bg guibg=Red

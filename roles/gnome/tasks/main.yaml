@@ -1,0 +1,69 @@
+- name: install xorg
+  package:
+    name: xorg
+    state: present
+
+- name: install gnome
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ gnome_softs }}"
+
+- name: install psutil
+  pip:
+    name: "{{ item }}"
+  with_items:
+    - psutil
+
+- name: install python-nautilus for nautilus-open-any-terminal
+  package:
+    name: python-nautilus
+    state: present
+
+- name: install nautilus-open-any-terminal manually
+  shell: |
+     git clone https://github.com/Stunkymonkey/nautilus-open-any-terminal
+     cd nautilus-open-any-terminal
+     ./tools/update-extension-system.sh install
+     cd ../
+     rm -rf nautilus-open-any-terminal
+
+- name: ensure dir
+  file:
+    path: "~{{ user_id }}/{{ item }}"
+    state: directory
+    owner: "{{ user_id }}"
+  with_items:
+   - .config/dconf
+   - theme
+
+- name: copy wallpaper
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ user_id }}"
+    mode: "0644"
+  with_items:
+    - { src: "{{ wallpaper }}", dest: "~{{ user_id }}/.config" }
+
+  # TODO: need to run as new user
+- name: setup gnome settings
+  become: yes
+  become_user: "{{ user_id }}"
+  dconf:
+    key: "{{ item.key }}"
+    value: "{{ item.val | string }}"
+  with_items: "{{ gnome_conf }}"
+
+- name: change login screen
+  import_role:
+    name: gnome
+    tasks_from: patch_login_screen
+  when: login_screeni_only_jpg is defined
+
+- name: install srv
+  import_role:
+    name: common
+    tasks_from: install_srv
+  vars:
+    srv_list: "{{ gnome_srvs }}"

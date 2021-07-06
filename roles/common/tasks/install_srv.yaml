@@ -1,0 +1,3 @@
+- name: enable srv
+  command: "systemctl enable {{ item }}"
+  with_items: "{{ srv_list }}"

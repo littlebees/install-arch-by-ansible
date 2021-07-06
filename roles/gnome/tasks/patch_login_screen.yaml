@@ -1,0 +1,69 @@
+- name: copy login screen background.jpg
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ user_id }}"
+    mode: "0644"
+  with_items:
+    - { src: "{{ login_screeni_only_jpg }}", dest: "~{{ user_id }}/theme/background.jpg" }
+
+- name: extract gdm resource to change login screen
+  become: yes
+  become_user: "{{ user_id }}"
+  shell: |
+    gst=/usr/share/gnome-shell/gnome-shell-theme.gresource
+  
+    for r in `gresource list $gst`; do
+      target=${r#\/org\/gnome\/shell/}
+      parent=$(dirname $target)
+      if [ ! -d $parent ]; then
+              mkdir -p ~{{ user_id }}/$parent
+      fi
+      gresource extract $gst $r > ~{{ user_id }}/$target
+    done
+
+# https://askubuntu.com/questions/1171332/is-there-a-way-to-make-ubuntu-18-04-login-screen-dark-themed
+- name: patch css
+  lineinfile:
+    path: "~{{ user_id }}/theme/{{ item }}"
+    line: |
+
+     .login-dialog > StBoxLayout {
+        background-color: rgb(248, 160, 201);
+        border: 1px solid #cccccc41;
+        box-shadow: 0 3px 9px 1px rgba(0, 0, 0, 0.5);
+        border-radius: 6px;
+        padding: 12px 40px 24px 40px; }
+
+     #lockDialogGroup {
+        background: url(resource:///org/gnome/shell/theme/background.jpg) no-repeat center center fixed;
+        background-size: cover;}
+  with_items:
+    - gnome-shell.css
+    - gnome-shell-high-contrast.css
+
+- name: package gdm resource
+  become: yes
+  become_user: "{{ user_id }}"
+  shell: |
+    theme_dir=~{{ user_id }}/theme/
+    
+    FILES=$(find $theme_dir -type f -printf "%P\n" | xargs -i echo "    <file>{}</file>")
+
+    cat <<EOF >"$theme_dir/gnome-shell-theme.gresource.xml"
+    <?xml version="1.0" encoding="UTF-8"?>
+    <gresources>
+      <gresource prefix="/org/gnome/shell/theme">
+    $FILES
+      </gresource>
+    </gresources>
+    EOF
+    
+    cd $theme_dir
+    glib-compile-resources gnome-shell-theme.gresource.xml
+    mv gnome-shell-theme.gresource ~{{ user_id }}
+
+- name: set new gresource
+  shell: |
+    mv /usr/share/gnome-shell/gnome-shell-theme.gresource ~{{ user_id }}/gnome-shell-theme.gresource.origin
+    mv ~{{ user_id }}/gnome-shell-theme.gresource /usr/share/gnome-shell/gnome-shell-theme.gresource

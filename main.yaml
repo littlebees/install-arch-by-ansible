@@ -1,0 +1,10 @@
+- hosts: target
+  gather_facts: no
+  roles:
+    - pre
+    - host
+    - newuser
+    - app
+    - gnome
+    #- plymouth
+    - final

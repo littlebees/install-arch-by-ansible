@@ -1,0 +1,15 @@
+- name: ensure dir
+  file:
+    path: "{{ item.dst | dirname }}"
+    state: directory
+    owner: root
+  with_items: "{{ host_rcs }}"
+
+- name: copy confs
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dst }}"
+    owner: root
+    group: root
+    mode: "0644"
+  with_items: "{{ host_rcs }}"

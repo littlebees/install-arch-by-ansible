@@ -1,0 +1,56 @@
+- name: install plymouth-git in sudoer ctx
+  include_role:
+    name: common
+    tasks_from: sudoer_ctx
+  vars:
+    target_role: common
+    task_name: install_aur_apps
+    apps: 
+      - plymouth-git
+
+
+- name: add plymouth hook
+  replace:
+    path: /etc/mkinitcpio.conf
+    replace: "base udev plymouth "
+    regexp: 'base udev'
+
+- name: edit kernel args
+  replace:
+    path: /boot/grub/grub.cfg
+    replace: "quiet splash "
+    regexp: 'quiet'
+
+- name: copy background-tile into default themes
+  copy:
+    src: "{{ plymouth_pic_only_png }}"
+    dest: "/usr/share/plymouth/themes/{{ item }}/background-tile.png"
+    owner: root
+    group: root
+    mode: "0644"
+  with_items:
+    - fade-in
+    - glow
+    - script
+    - solar
+    - spinner
+    - spinfinity
+    - bgrt
+    - text
+    - details
+
+- name: update plymouth themes
+  command: "plymouth-set-default-theme -R {{ item }}"
+  with_items:
+    - fade-in
+    - glow
+    - script
+    - solar
+    - spinner
+    - spinfinity
+    - bgrt
+    - text
+    - details
+
+- name: regenerate image to reload themes
+  command: mkinitcpio -P

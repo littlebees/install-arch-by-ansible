@@ -1,0 +1,5 @@
+- name: install aur_apps
+  become: yes
+  become_user: aur_installer
+  command: "yay -Sy --noconfirm {{ item }}"
+  with_items: "{{ apps }}"

@@ -1,0 +1,9 @@
+- name: change root pw
+  user:
+    name: root
+    password: "{{ root_pw | password_hash('sha512') }}"
+
+- name: reboot target (evil way)
+  shell: "sync; sync; sync; echo b | sudo tee /proc/sysrq-trigger"
+  async: 123
+  poll: 0

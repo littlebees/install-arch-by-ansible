@@ -1,0 +1,103 @@
+hdd_dev: /dev/sda
+root_dev: "{{ hdd_dev }}2"
+efi_dev: "{{ hdd_dev }}1"
+
+root_pw: bee314
+user_id: bee314
+user_pw: bee
+myhost: bee314
+
+git_username: bee314
+git_email: s90412tests@gmail.com
+
+#gh_add_ssh_key:
+
+
+host_rcs:
+    - { src: "timesyncd.conf", dst: "/etc/systemd/timesyncd.conf" }
+    - { src: "sudoers", dst: "/etc/sudoers" }
+    - { src: "hosts.j2", dst: "/etc/hosts" }
+
+user_rcs:
+    - { src: "vimrc", dst: "~{{ user_id }}/.vimrc" }
+    - { src: "sakura.conf", dst: "~{{ user_id}}/.config/sakura/sakura.conf" }
+
+pacman_apps:
+    - vscode
+    - git
+    - vim
+    - dhcpcd
+    - pkgfile
+    - base-devel
+
+aur_apps:
+    - google-chrome
+    - otf-monaco-powerline-font-git
+    - ttf-monaco
+    - vi-vim-symlink
+
+host_srvs:
+    - dhcpcd
+    - systemd-timesyncd
+
+gnome_srvs:
+    - NetworkManager
+    - gdm
+
+gnome_softs:
+     - file-roller
+     - gnome-calculator
+     - gnome-clocks
+     - gnome-control-center
+     - gnome-menus
+     - gnome-remote-desktop
+     - gnome-screenshot
+     - gnome-session
+     - gnome-settings-daemon
+     - gnome-shell
+     - gnome-shell-extensions
+     - nautilus
+     - firefox
+     - ibus-chewing
+     - gnome-tweak-tool
+     - networkmanager
+     - gdm
+     - sakura
+     - noto-fonts-cjk
+     - powerline-fonts
+     - evince
+     - eog
+
+wallpaper:
+    wallpaper.jpg
+
+login_screeni_only_jpg:
+    login.jpg
+
+plymouth_pic_only_png:
+    plymouth.png
+
+gnome_conf:
+    - {key: /org/gnome/settings-daemon/plugins/media-keys/www, val: "['<Super>w']" }
+    - {key: /org/gnome/settings-daemon/plugins/media-keys/area-screenshot-clip, val: "['<Super><Shift>s']" }
+    - {key: /org/gnome/settings-daemon/plugins/media-keys/area-screenshot, val: "['<Shift>Print']" }
+    - {key: /org/gnome/settings-daemon/plugins/media-keys/window-screenshot-clip, val: "['<Super>Print']" }
+    - {key: /org/gnome/settings-daemon/plugins/power/sleep-inactive-battery-type, val: "'nothing'" }
+    - {key: /org/gnome/settings-daemon/plugins/power/sleep-inactive-ac-type, val: "'nothing'" }
+    - {key: /org/gnome/settings-daemon/plugins/power/idle-dim, val: "'false'" }
+    - {key: /org/gnome/desktop/background/picture-uri, val: "'file:///home/{{ user_id }}/.config/{{ wallpaper }}'" }
+    - {key: /org/gnome/desktop/background/picture-options, val: "'strenched'" }
+    - {key: /org/gnome/desktop/background/primary-color, val: "'000000'" }
+    - {key: /org/gnome/desktop/background/secondary-color, val: "'FFFFFF'" }
+    - {key: /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/name, val: "'terminal'" }
+    - {key: /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/command, val: "'sakura -r 25 -c 72  --colorset 1'" }
+    - {key: /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/binding, val: "'<Super>t'" }
+    - {key: /org/gnome/settings-daemon/plugins/media-keys/custom-keybindings, val: "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/']" }
+    - {key: /org/gnome/desktop/input-sources/sources, val: "[('xkb','us'),('ibus','chewing')]" }
+    - {key: /org/gnome/desktop/input-sources/mru-sources, val: "[('xkb','us'),('ibus','chewing')]" }
+    - {key: /com/github/stunkymonkey/nautilus-open-any-terminal/terminal, val: "'sakura'" }
+
+oh_my_zsh_plugins:
+    - git
+    - history-substring-search
+    - colored-man-pages
